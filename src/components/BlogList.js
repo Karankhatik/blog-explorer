@@ -1,21 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaEye, FaThumbsUp, FaThumbsDown, FaSearch } from 'react-icons/fa';
 import { dummyBlogs } from '../data/dummyBlogs';
 
-
 const BlogList = () => {
-
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('');
+  const [filteredBlogs, setFilteredBlogs] = useState(dummyBlogs);
+  const [loading, setLoading] = useState(false); 
   const blogs = dummyBlogs;
 
+  // Delay the Filtering Logic
+  useEffect(() => {
+    setLoading(true); 
+    const handler = setTimeout(() => {
+      const filtered = blogs.filter((blog) => {
+        const matchesSearch = blog.title.trim().toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesFilter = selectedFilter ? blog.category === selectedFilter : true;
+        return matchesSearch && matchesFilter;
+      });
+      setFilteredBlogs(filtered);
+      setLoading(false); 
+    }, 800); 
 
-  // Filtering Logic
-  const filteredBlogs = blogs.filter((blog) => {
-    const matchesSearch = blog.title.trim().toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFilter = selectedFilter ? blog.category === selectedFilter : true;
-    return matchesSearch && matchesFilter;
-  });
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery, selectedFilter, blogs]);
 
   return (
     <div>
@@ -51,14 +61,15 @@ const BlogList = () => {
         </div>
       </div>
 
-
       {/* Blog Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 px-8 mt-6 mb-6">
-        {filteredBlogs.length > 0 ? (
+        {loading ? (
+          <div className="text-center text-gray-500 mt-10">Loading...</div>
+        ) : filteredBlogs.length > 0 ? (
           filteredBlogs.map((blog) => (
             <div
               key={blog.id}
-              className="bg-slate-100 border rounded-md shadow-md p-4 flex flex-col justify-between"
+              className="bg-slate-200 border rounded-md shadow-md p-4 flex flex-col justify-between"
             >
               <div>
                 <h3 className="font-bold text-lg text-gray-700 mb-2">{blog.title}</h3>
